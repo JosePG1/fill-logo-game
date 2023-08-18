@@ -1,7 +1,7 @@
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using Task = System.Threading.Tasks.Task;
 
 public class FillCanvasYIncremental : MonoBehaviour
@@ -12,42 +12,63 @@ public class FillCanvasYIncremental : MonoBehaviour
     [SerializeField] TextMeshProUGUI FeedBackText;
     string languageSelected;
     [SerializeField] int LevelDifficulty;
-    [SerializeField] Button PortugueseLanguage;
-    [SerializeField] Button EnglishLanguage;
+    [SerializeField] Animator PortugueseLanguage;
+    [SerializeField] Animator EnglishLanguage;
     [SerializeField] GameObject StartPanel;
 
     float fillIncrement;
     float originalAnchorMaxY;
     bool leftFootKeyPressed;
     bool rightFootKeyPressed;
-    bool languageChosen;
     bool levelDifficultyChosen;
+    bool isChoosingLanguage;
+    bool alreadyAnimated;
+    static readonly int IsChosen = Animator.StringToHash( "isChosen" );
 
 
-    void Start()
+    void Awake()
     {
-        PortugueseLanguage.onClick.AddListener(() =>
-        {
-            languageSelected = "pt";
-            SetGameSettings();
-        } );
-        EnglishLanguage.onClick.AddListener( () =>
-        {
-            languageSelected = "en";
-            SetGameSettings();
-        } );
-
+        isChoosingLanguage = true;
     }
 
     void Update()
     {
         if ( Input.GetKeyDown( RightFootKey ) )
         {
-            rightFootKeyPressed = true;
+            if ( isChoosingLanguage )
+            {
+                if ( !alreadyAnimated )
+                {
+                    StartCoroutine( RunAnimation( EnglishLanguage, "en") );
+                }
+                else
+                {
+                    Debug.LogError( $"" );
+                    isChoosingLanguage = false;
+                }
+            }
+            else
+            {
+                rightFootKeyPressed = true;
+            }
         }
         if (Input.GetKeyDown(LeftFootKey) )
         {
-            leftFootKeyPressed = true;
+            if ( isChoosingLanguage )
+            {
+                if ( !alreadyAnimated )
+                {
+                    StartCoroutine( RunAnimation( PortugueseLanguage, "pt") );
+                }
+                else
+                {
+                    isChoosingLanguage = false;
+                }
+            }
+            else
+            {
+                leftFootKeyPressed = true;
+            }
         }
         
         if (Input.GetKeyUp(LeftFootKey))
@@ -69,9 +90,9 @@ public class FillCanvasYIncremental : MonoBehaviour
         }
     }
 
-    void SetGameSettings()
+    void SetGameSettings(string language)
     {
-        languageChosen = true;
+        languageSelected = language;
         StartPanel.SetActive( false );
         GamSettings.GetGameTexts( languageSelected, LevelDifficulty );
         GamSettings.GetGameDifficulty( LevelDifficulty );
@@ -89,21 +110,26 @@ public class FillCanvasYIncremental : MonoBehaviour
             ResetGame();
 
         }
-
-        if ( languageChosen)
-        {
-            
-            var newAnchorY = Mathf.Clamp(RectTransform.anchorMax.y + fillIncrement, originalAnchorMaxY, 1.0f);
-            RectTransform.anchorMax = new Vector2(RectTransform.anchorMax.x, newAnchorY);
-        }
-        
+        var newAnchorY = Mathf.Clamp(RectTransform.anchorMax.y + fillIncrement, originalAnchorMaxY, 1.0f);
+        RectTransform.anchorMax = new Vector2(RectTransform.anchorMax.x, newAnchorY);
     }
 
     void ResetGame()
     {
+        rightFootKeyPressed = false;
+        leftFootKeyPressed = false;
+        alreadyAnimated = false;
         StartPanel.SetActive( true );
-        languageChosen = false;
         FeedBackText.gameObject.SetActive( false );
+        isChoosingLanguage = true;
         RectTransform.anchorMax = new Vector2(RectTransform.anchorMax.x, originalAnchorMaxY);
+    }
+
+    IEnumerator RunAnimation(Animator animator, string language)
+    {
+        animator.SetTrigger( IsChosen );
+        yield return new WaitForSeconds(3.0f);
+        SetGameSettings(language);
+        alreadyAnimated = true;
     }
 }
