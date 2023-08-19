@@ -1,11 +1,15 @@
-public abstract class GamSettings 
+public abstract class GameSettings 
 {
     public static string FeedbackText;
+    public static string StartGameText;
     public static float FillValue;
+    public static int LevelDifficulty;
+    public static float GameDuration = 60;
+    public static readonly float InitialCountdown = 12;
 
-    public static void GetGameDifficulty( int gameDifficulty )
+    public static void GetGameDifficulty( )
     {
-        FillValue = gameDifficulty switch
+        FillValue = LevelDifficulty switch
         {
             1 => 0.01f,
             2 => 0.008f,
@@ -19,6 +23,7 @@ public abstract class GamSettings
     {
         if ( language == "pt" )
         {
+            StartGameText = "Bem-Vindo, par ainiciar jogo carrega em 1 dos botões que tens no chão";
             FeedbackText = gameDifficulty switch
             {
                 1 => "Demasiado fácil para ti!",
@@ -32,6 +37,7 @@ public abstract class GamSettings
         
         if ( language == "en" )
         {
+            StartGameText = "Welcome, to start please press any button on the floor";
             FeedbackText = gameDifficulty switch
             {
                 1 => "Too easy for you!",
